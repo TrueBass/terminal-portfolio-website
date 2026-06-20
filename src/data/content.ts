@@ -74,8 +74,8 @@ export const education: EducationEntry[] = [
 ];
 
 export const courses: Course[] = [
-  { name: "Some Great Course", provider: "Provider", year: "2024" },
-  { name: "Another Course", provider: "Provider", year: "2023" },
+  { name: "CCNAv7: Introduction to Networks", provider: "Cisco Networking Academy", year: "2024" },
+  { name: "CyberOps Associate", provider: "Cisco Networking Academy", year: "2025" },
 ];
 
 /** Personal facts / hobbies — listed by the `hobbies` command. */
