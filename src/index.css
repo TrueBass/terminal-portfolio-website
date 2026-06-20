@@ -63,8 +63,31 @@ body {
   animation: caret-blink 1s step-end infinite;
 }
 
+/* Flowing two-accent gradient (sage ⇄ pink) for the "Not For Geeks" toggle */
+@keyframes accent-flow {
+  to {
+    background-position: 200% 50%;
+  }
+}
+.accent-flow {
+  background-image: linear-gradient(
+    90deg,
+    var(--color-accent),
+    var(--color-accent-2),
+    var(--color-accent)
+  );
+  background-size: 200% 100%;
+  animation: accent-flow 5s linear infinite;
+}
+.accent-flow-text {
+  color: transparent;
+  background-clip: text;
+  -webkit-background-clip: text;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .caret-blink {
+  .caret-blink,
+  .accent-flow {
     animation: none;
   }
 }
