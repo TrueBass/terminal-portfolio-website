@@ -1,7 +1,8 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { config } from "../../config";
 import { projects, education, courses, facts } from "../../data/content";
 import { themes, applyTheme, currentThemeName, defaultThemeName } from "../../theme";
+import { Typewriter } from "./Typewriter";
 
 export type Tone = "default" | "accent" | "muted" | "error";
 
@@ -21,6 +22,54 @@ const text = (
   body: string,
   opts: { tone?: Tone; animate?: boolean } = {},
 ): CommandResult => ({ type: "text", text: body, animate: true, ...opts });
+
+// `joke` fetches a random joke from the public joke API; if it's unreachable
+// (offline / CORS) it falls back to a local one so the command never just errors.
+const FALLBACK_JOKE = {
+  setup: "Why do programmers prefer dark mode?",
+  punchline: "Because light attracts bugs.",
+};
+
+function Joke() {
+  const [joke, setJoke] = useState<{ setup: string; punchline: string } | null>(null);
+  const [showPunchline, setShowPunchline] = useState(false);
+
+  useEffect(() => {
+    let alive = true;
+    fetch("https://official-joke-api.appspot.com/random_joke")
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .then((d) => {
+        if (alive) setJoke({ setup: String(d.setup), punchline: String(d.punchline) });
+      })
+      .catch(() => {
+        if (alive) setJoke(FALLBACK_JOKE);
+      });
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (!joke) {
+    return <span className="font-mono text-muted">fetching a joke…</span>;
+  }
+
+  return (
+    <div className="font-mono">
+      {/* type the setup, then reveal the punchline for comedic timing */}
+      <pre className="whitespace-pre-wrap break-words text-text">
+        <Typewriter text={joke.setup} onDone={() => setShowPunchline(true)} />
+      </pre>
+      {showPunchline && (
+        <pre className="mt-1 whitespace-pre-wrap break-words text-accent">
+          <Typewriter text={joke.punchline} />
+        </pre>
+      )}
+    </div>
+  );
+}
 
 // Ordered command list (also drives `help` and Tab autocomplete).
 export const commandList: Command[] = [
@@ -104,21 +153,17 @@ export const commandList: Command[] = [
     },
   },
   {
-    name: "facts",
-    description: "a random fun fact",
+    name: "hobbies",
+    description: "what I do for fun",
     run: () => {
-      if (!facts.length) return text("No facts yet.", { tone: "muted" });
-      const fact = facts[Math.floor(Math.random() * facts.length)];
-      return text(fact, { tone: "accent" });
+      if (!facts.length) return text("Nothing listed yet.", { tone: "muted" });
+      return text(facts.map((f) => `• ${f}`).join("\n"));
     },
   },
   {
-    name: "fun",
-    description: "all the fun facts",
-    run: () => {
-      if (!facts.length) return text("No facts yet.", { tone: "muted" });
-      return text(facts.map((f) => `• ${f}`).join("\n"));
-    },
+    name: "joke",
+    description: "fetch a random joke",
+    run: () => ({ type: "node", node: <Joke /> }),
   },
   {
     name: "contact",

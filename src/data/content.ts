@@ -78,7 +78,7 @@ export const courses: Course[] = [
   { name: "Another Course", provider: "Provider", year: "2023" },
 ];
 
-/** Random fun/interesting facts — `facts` picks one, `fun` lists them. */
+/** Personal facts / hobbies — listed by the `hobbies` command. */
 export const facts: string[] = [
   "Off the keyboard you'll find me at the gym, on a bike, or playing team sports.",
   "Strategy and strings: I play chess and the guitar.",
