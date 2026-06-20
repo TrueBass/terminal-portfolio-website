@@ -3,7 +3,10 @@
 
 const env = import.meta.env;
 
-const str = (v: unknown): string => (typeof v === "string" ? v.trim() : "");
+// Normalize a literal "\n" into a real newline so values set in dashboards like
+// Vercel (which inject env vars verbatim, unlike dotenv) still break lines.
+const str = (v: unknown): string =>
+  typeof v === "string" ? v.replace(/\\n/g, "\n").trim() : "";
 
 export const config = {
   name: str(env.VITE_NAME) || "Your Name",
