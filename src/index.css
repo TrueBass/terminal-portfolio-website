@@ -25,6 +25,14 @@ body,
   height: 100%;
 }
 
+/* Fluid base rem so the UI scales with the display: flat at 16px through laptop
+   widths (~≤1440px), then growing up to 22px on large monitors — keeps text and
+   spacing from looking tiny on big screens. Everything is sized in rem, so it all
+   scales together. */
+html {
+  font-size: clamp(16px, 9.6px + 0.45vw, 22px);
+}
+
 body {
   margin: 0;
   background-color: var(--color-bg);
