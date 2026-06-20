@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+.env
+.DS_Store
+*.log
+.vite
+
+# unused source photos — only me2.jpg is shipped on the badge
+public/assets/me.jpeg
+public/assets/me3.jpg
