@@ -13,6 +13,7 @@ import {
 } from "@react-three/rapier";
 import { MeshLineGeometry, MeshLineMaterial } from "meshline";
 import { config, initials } from "../../config";
+import { readAccents, THEME_EVENT } from "../../theme";
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
@@ -62,7 +63,11 @@ function makeInitialsCanvas(): HTMLCanvasElement {
   return c;
 }
 
-/** Woven sage strap carrying the logo wordmark — repeated along the band length. */
+/**
+ * Woven strap carrying the logo wordmark, repeated along the band length.
+ * Drawn in neutral greys so the meshline material's `color` can tint it to the
+ * active accent (keeping the tube shading + weave) — see Band's accent state.
+ */
 function makeStrapTexture(): THREE.Texture {
   const w = 1024;
   const h = 256;
@@ -73,9 +78,9 @@ function makeStrapTexture(): THREE.Texture {
 
   // rounded-tube shading across the strap width (darker edges, lit middle)
   const grad = ctx.createLinearGradient(0, 0, 0, h);
-  grad.addColorStop(0, "#5e7d63");
-  grad.addColorStop(0.5, "#9ec0a2");
-  grad.addColorStop(1, "#5e7d63");
+  grad.addColorStop(0, "#7a7a7a");
+  grad.addColorStop(0.5, "#f2f2f2");
+  grad.addColorStop(1, "#7a7a7a");
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, h);
 
@@ -89,9 +94,9 @@ function makeStrapTexture(): THREE.Texture {
     ctx.stroke();
   }
 
-  // printed wordmark running along the strap
+  // printed wordmark running along the strap (dark imprint, stays dark under any tint)
   const label = (config.logo || "truebass").toLowerCase();
-  ctx.fillStyle = "rgba(20,33,24,0.78)";
+  ctx.fillStyle = "rgba(18,18,18,0.62)";
   ctx.font = `600 ${Math.round(h * 0.34)}px "JetBrains Mono", monospace`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
@@ -198,6 +203,14 @@ function Band() {
   const { nodes, materials } = useGLTF(CARD_GLB) as any;
   const [strap] = useState(makeStrapTexture);
   const cardMap = useCardMap(materials.base.map);
+
+  // Strap follows the active accent theme (tints the neutral weave texture).
+  const [accent, setAccent] = useState(() => readAccents().accent);
+  useEffect(() => {
+    const update = () => setAccent(readAccents().accent);
+    window.addEventListener(THEME_EVENT, update);
+    return () => window.removeEventListener(THEME_EVENT, update);
+  }, []);
 
   const [curve] = useState(
     () =>
@@ -331,7 +344,7 @@ function Band() {
       <mesh ref={band} frustumCulled={false}>
         <meshLineGeometry />
         <meshLineMaterial
-          color="white"
+          color={accent}
           depthTest={false}
           resolution={isMobile ? [1000, 2000] : [1000, 1000]}
           useMap
