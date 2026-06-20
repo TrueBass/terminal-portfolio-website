@@ -15,6 +15,8 @@ export type CommandResult =
 export interface Command {
   name: string;
   description: string;
+  /** Whether this command reads arguments. When false, extra args are rejected. */
+  acceptsArgs?: boolean;
   run: (args: string[]) => CommandResult;
 }
 
@@ -204,6 +206,7 @@ export const commandList: Command[] = [
   {
     name: "theme",
     description: "switch accent colors",
+    acceptsArgs: true,
     run: (args) => {
       const sub = (args[0] ?? "").toLowerCase();
 
@@ -272,6 +275,22 @@ export function runCommand(input: string): { echo: string; result: CommandResult
       }),
     };
   }
+
+  // Commands that don't read args reject extras, like a real shell.
+  if (!command.acceptsArgs && args.length > 0) {
+    const bad = args[0];
+    const msg = bad.startsWith("-")
+      ? `${name}: unrecognized option '${bad}'`
+      : `${name}: too many arguments`;
+    return {
+      echo: input,
+      result: text(`${msg}\nType 'help' to see available commands.`, {
+        tone: "error",
+        animate: false,
+      }),
+    };
+  }
+
   return { echo: input, result: command.run(args) };
 }
 

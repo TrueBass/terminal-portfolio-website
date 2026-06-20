@@ -12,7 +12,7 @@ import {
   type RapierRigidBody,
 } from "@react-three/rapier";
 import { MeshLineGeometry, MeshLineMaterial } from "meshline";
-import { config, initials } from "../../config";
+import { config } from "../../config";
 import { readAccents, THEME_EVENT } from "../../theme";
 
 extend({ MeshLineGeometry, MeshLineMaterial });
@@ -27,41 +27,9 @@ declare module "@react-three/fiber" {
 // Modeled badge + woven strap, after reactbits.dev/components/lanyard.
 const CARD_GLB = "/assets/lanyard/card.glb";
 
-// Front / back image areas on the card's baked UV layout (from card.glb).
-const FRONT_UV_RECT = { x: 0, y: 0, w: 0.5, h: 0.755 };
-const BACK_UV_RECT = { x: 0.5, y: 0, w: 0.5, h: 0.757 };
-
 useGLTF.preload(CARD_GLB);
 
 const isMobile = typeof window !== "undefined" && window.innerWidth < 768;
-
-/** Initials placeholder drawn to a canvas (used as the card face when there's no photo). */
-function makeInitialsCanvas(): HTMLCanvasElement {
-  const w = 512;
-  const h = Math.round(w * 1.5); // 2:3
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d")!;
-
-  const grad = ctx.createLinearGradient(0, 0, w, h);
-  grad.addColorStop(0, "#222");
-  grad.addColorStop(1, "#0d0d0d");
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, h);
-
-  ctx.fillStyle = "#81a684";
-  ctx.font = `bold ${Math.round(w * 0.42)}px Inter, system-ui, sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(initials || "?", w / 2, h * 0.44);
-
-  ctx.fillStyle = "#8a8a8a";
-  ctx.font = `${Math.round(w * 0.07)}px monospace`;
-  ctx.fillText("no photo yet", w / 2, h * 0.62);
-
-  return c;
-}
 
 /**
  * Woven strap carrying the logo wordmark, repeated along the band length.
@@ -109,73 +77,6 @@ function makeStrapTexture(): THREE.Texture {
   return tex;
 }
 
-/**
- * Composites the photo (or initials fallback) onto the badge's front & back faces
- * over the GLB's baked base texture — so no source branding shows through.
- * Never errors: a missing/failed photo just yields the initials face.
- */
-function useCardMap(baseMap: THREE.Texture): THREE.Texture {
-  const [map, setMap] = useState<THREE.Texture>(baseMap);
-
-  useEffect(() => {
-    let alive = true;
-
-    const compose = (face: HTMLImageElement | HTMLCanvasElement) => {
-      const baseImg = baseMap.image as HTMLImageElement | undefined;
-      if (!baseImg) return;
-      const W = baseImg.width;
-      const H = baseImg.height;
-      const canvas = document.createElement("canvas");
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.drawImage(baseImg, 0, 0, W, H);
-
-      const fitCover = (rect: { x: number; y: number; w: number; h: number }) => {
-        const rx = rect.x * W;
-        const ry = rect.y * H;
-        const rw = rect.w * W;
-        const rh = rect.h * H;
-        const scale = Math.max(rw / face.width, rh / face.height);
-        const dw = face.width * scale;
-        const dh = face.height * scale;
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(rx, ry, rw, rh);
-        ctx.clip();
-        ctx.drawImage(face, rx + (rw - dw) / 2, ry + (rh - dh) / 2, dw, dh);
-        ctx.restore();
-      };
-      fitCover(FRONT_UV_RECT);
-      fitCover(BACK_UV_RECT);
-
-      const composite = new THREE.CanvasTexture(canvas);
-      composite.colorSpace = THREE.SRGBColorSpace;
-      composite.flipY = baseMap.flipY;
-      composite.anisotropy = 16;
-      composite.needsUpdate = true;
-      if (alive) setMap(composite);
-    };
-
-    if (config.photo) {
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => compose(img);
-      img.onerror = () => compose(makeInitialsCanvas());
-      img.src = config.photo;
-    } else {
-      compose(makeInitialsCanvas());
-    }
-
-    return () => {
-      alive = false;
-    };
-  }, [baseMap]);
-
-  return map;
-}
-
 function Band() {
   const maxSpeed = 50;
   const minSpeed = 0;
@@ -202,7 +103,6 @@ function Band() {
 
   const { nodes, materials } = useGLTF(CARD_GLB) as any;
   const [strap] = useState(makeStrapTexture);
-  const cardMap = useCardMap(materials.base.map);
 
   // Strap follows the active accent theme (tints the neutral weave texture).
   const [accent, setAccent] = useState(() => readAccents().accent);
@@ -325,7 +225,7 @@ function Band() {
           >
             <mesh geometry={nodes.card.geometry}>
               <meshPhysicalMaterial
-                map={cardMap}
+                map={materials.base.map}
                 map-anisotropy={16}
                 clearcoat={isMobile ? 0 : 1}
                 clearcoatRoughness={0.15}
@@ -360,7 +260,7 @@ function Band() {
 /**
  * Interactive 3D badge on a lanyard — react-three-fiber + rapier, after the
  * reactbits.dev Lanyard. Real rope physics, glossy modeled card, woven strap.
- * The photo is composited onto the badge face; no photo → initials fallback.
+ * The card face is whatever texture is baked into card.glb.
  */
 export function RopeCard() {
   return (
