@@ -11,9 +11,17 @@ const links = [
 export function Footer() {
   return (
     <footer className="flex items-center justify-between border-t border-border px-5 py-3.5 sm:px-8">
-      <span className="font-mono text-xs text-muted">
-        © {new Date().getFullYear()} {config.name}
-      </span>
+      <div className="flex items-center gap-2.5">
+        <span className="font-mono text-xs text-muted">
+          © {new Date().getFullYear()} {config.name}
+        </span>
+        <span
+          className="accent-flow rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-bg"
+          title="Work in progress — more coming soon"
+        >
+          MVP
+        </span>
+      </div>
       <nav className="flex items-center gap-1">
         {links.map(({ label, href, Icon }) => (
           <a
