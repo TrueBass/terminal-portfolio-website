@@ -8,6 +8,9 @@ dist-ssr
 *.log
 .vite
 
-# unused source photos — only me2.jpg is shipped on the badge
-public/assets/me.jpeg
-public/assets/me3.jpg
+# Personal photos — keep them out of the repo. Add your image to
+# public/assets/ locally and point VITE_PHOTO at it; the badge shows an
+# initials fallback when the photo is missing.
+public/assets/*.jpg
+public/assets/*.jpeg
+public/assets/*.png
