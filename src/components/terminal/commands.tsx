@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { config } from "../../config";
 import { projects, education, courses, facts } from "../../data/content";
+import { themes, applyTheme, currentThemeName, defaultThemeName } from "../../theme";
 
 export type Tone = "default" | "accent" | "muted" | "error";
 
@@ -153,6 +154,46 @@ export const commandList: Command[] = [
           </div>
         ),
       };
+    },
+  },
+  {
+    name: "theme",
+    description: "switch accent colors",
+    run: (args) => {
+      const sub = (args[0] ?? "").toLowerCase();
+
+      if (!sub) {
+        return text(
+          "theme: missing operand\nTry 'theme --help' for more information.",
+          { tone: "error", animate: false },
+        );
+      }
+
+      if (sub === "--help" || sub === "-h") {
+        const current = currentThemeName();
+        const lines = [
+          "Usage: theme <name>",
+          "Switch the site's accent colors.",
+          "",
+          "Themes:",
+          ...Object.entries(themes).map(
+            ([key, t]) => `  ${key.padEnd(8)}${t.label}${key === current ? "  ← active" : ""}`,
+          ),
+          "",
+          "  theme reset     restore the default theme",
+          "  theme --help    display this help and exit",
+        ];
+        return text(lines.join("\n"), { animate: false });
+      }
+
+      const name = sub === "reset" || sub === "default" ? defaultThemeName : sub;
+      if (!applyTheme(name)) {
+        return text(
+          `theme: unknown theme '${sub}'\nTry 'theme --help' for more information.`,
+          { tone: "error", animate: false },
+        );
+      }
+      return text(`theme set → ${themes[name].label}`, { tone: "accent" });
     },
   },
   {
