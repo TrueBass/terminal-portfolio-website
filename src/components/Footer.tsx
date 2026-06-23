@@ -19,7 +19,7 @@ export function Footer() {
           className="accent-flow rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-bg"
           title="Work in progress — more coming soon"
         >
-          MVP
+          still cooking
         </span>
       </div>
       <nav className="flex items-center gap-1">

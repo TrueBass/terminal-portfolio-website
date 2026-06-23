@@ -56,7 +56,7 @@ body {
   border-radius: 8px;
 }
 
-/* Blinking block caret for the terminal prompt */
+/* Blinking caret (logo underscore, typewriter tail) — simple opacity blink. */
 @keyframes caret-blink {
   0%,
   49% {
@@ -69,6 +69,25 @@ body {
 }
 .caret-blink {
   animation: caret-blink 1s step-end infinite;
+}
+
+/* Block caret sitting ON a character in the live terminal prompt. Animate the
+   block's background and the glyph's color (not opacity) so the character under
+   the caret stays visible on the "off" beat — only the block fades. */
+@keyframes caret-block {
+  0%,
+  49% {
+    background-color: var(--color-accent-2);
+    color: var(--color-bg);
+  }
+  50%,
+  100% {
+    background-color: transparent;
+    color: var(--color-text);
+  }
+}
+.caret-block {
+  animation: caret-block 1s step-end infinite;
 }
 
 /* Flowing two-accent gradient (sage ⇄ pink) for the "Not For Geeks" toggle */
@@ -95,6 +114,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .caret-blink,
+  .caret-block,
   .accent-flow {
     animation: none;
   }

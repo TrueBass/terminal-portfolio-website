@@ -45,6 +45,7 @@ export function Terminal() {
   const [entries, setEntries] = useState<Entry[]>([]);
   const [input, setInput] = useState("");
   const [caret, setCaret] = useState(0);
+  const [focused, setFocused] = useState(true);
   const [skipSignal, setSkipSignal] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
@@ -225,7 +226,15 @@ export function Terminal() {
             <PromptSymbol />
             <span className="relative inline-block min-w-[1ch] whitespace-pre-wrap break-words">
               <span className="text-text">{before}</span>
-              <span className="caret-blink bg-accent-2 text-bg">{under}</span>
+              <span
+                className={
+                  focused
+                    ? "caret-block bg-accent-2 text-bg"
+                    : "text-text ring-1 ring-inset ring-accent-2/60"
+                }
+              >
+                {under}
+              </span>
               <span className="text-text">{after}</span>
               <input
                 ref={inputRef}
@@ -238,6 +247,8 @@ export function Terminal() {
                 onKeyUp={syncCaret}
                 onSelect={syncCaret}
                 onClick={syncCaret}
+                onFocus={() => setFocused(true)}
+                onBlur={() => setFocused(false)}
                 spellCheck={false}
                 autoCapitalize="off"
                 autoCorrect="off"
